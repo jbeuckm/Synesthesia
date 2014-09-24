@@ -4,6 +4,7 @@
 #include "ofxiOS.h"
 #include "ofxiOSExtras.h"
 #include "ofxOpenCv.h"
+#include "ofxFft.h"
 
 class ofApp : public ofxiOSApp {
 	
@@ -59,7 +60,10 @@ class ofApp : public ofxiOSApp {
     float phaseAdder;
     float phaseAdderTarget;
     int initialBufferSize;
-
+    
+    
+    ofxFft *fft;
+	ofMutex soundMutex;
 };
 
 

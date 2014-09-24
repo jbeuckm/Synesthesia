@@ -62,6 +62,8 @@ void ofApp::setup(){
     ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
     ofSetFrameRate(60);
 
+//    fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING, OF_FFT_FFTW);
+    fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING);
 }
 
 //--------------------------------------------------------------
@@ -87,9 +89,11 @@ void ofApp::update(){
             scaledInputImage.scaleIntoMe(grayImage);
             
             enlarged.scaleIntoMe(scaledInputImage, CV_INTER_AREA);
-            
-            // take the abs value of the difference between background and incoming and then threshold:
-            //			grayDiff.absDiff(grayBg, grayImage);
+
+            /*
+            fft->setSignal(input);
+            float* curFft = fft->getAmplitude();
+            */
             
         }
     }
