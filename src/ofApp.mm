@@ -1,6 +1,8 @@
 #include "ofApp.h"
 #include "ofxFft.h"
 
+using namespace cv;
+
 //--------------------------------------------------------------
 void ofApp::setup(){
     //ofSetOrientation(OF_ORIENTATION_90_RIGHT);//Set iOS to Orientation Landscape Right
@@ -60,7 +62,7 @@ void ofApp::setup(){
     // ofxiOSSoundStream::setMixWithOtherApps(true);
     
     ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
-    ofSetFrameRate(60);
+    ofSetFrameRate(24);
 
 //    fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING, OF_FFT_FFTW);
     fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING);
@@ -89,6 +91,28 @@ void ofApp::update(){
             scaledInputImage.scaleIntoMe(grayImage);
             
             enlarged.scaleIntoMe(scaledInputImage, CV_INTER_AREA);
+
+            
+            Mat input = colorImg.getCvImage();
+            
+            Mat hsv_input;
+            
+            cvtColor( input, hsv_input, CV_BGR2HSV );
+            
+            int h_bins = 512;
+            int histSize[] = { h_bins};
+            float h_ranges[] = { 0, 180 };
+            
+            const float* ranges[] = { h_ranges };
+            int channels[] = { 0 };
+
+            MatND hist_input;
+
+            calcHist( &hsv_input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
+
+            normalize( hist_input, hist_input, 0, 1, NORM_MINMAX, -1, Mat() );
+            
+            ofLog() << hist_input;
 
             /*
             fft->setSignal(input);
