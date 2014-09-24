@@ -34,7 +34,8 @@ class ofApp : public ofxiOSApp {
     
     ofxCvGrayscaleImage grayImage;
     ofxCvGrayscaleImage scaledInputImage;
-    ofxCvGrayscaleImage enlarged;
+//    ofxCvGrayscaleImage enlarged;
+    ofxCvColorImage enlarged;
     
     
     ofxCvGrayscaleImage grayBg;
@@ -64,6 +65,8 @@ class ofApp : public ofxiOSApp {
     
     ofxFft *fft;
 	ofMutex soundMutex;
+    
+    float *outputSignal;
 };
 
 

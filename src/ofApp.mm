@@ -37,17 +37,19 @@ void ofApp::setup(){
     phaseAdderTarget = 0.0;
     volume = 0.15f;
     pan = 0.5;
-    bNoise = false;
+    bNoise = true;
     
     //for some reason on the iphone simulator 256 doesn't work - it comes in as 512!
     //so we do 512 - otherwise we crash
-    initialBufferSize = 512;
+    initialBufferSize = 1024;
     
     lAudio = new float[initialBufferSize];
     rAudio = new float[initialBufferSize];
+    outputSignal = new float[initialBufferSize];
     
     memset(lAudio, 0, initialBufferSize * sizeof(float));
     memset(rAudio, 0, initialBufferSize * sizeof(float));
+    memset(outputSignal, 0, initialBufferSize * sizeof(float));
     
     //we do this because we don't have a mouse move function to work with:
     targetFrequency = 444.0;
@@ -84,13 +86,14 @@ void ofApp::update(){
         if( vidGrabber.getPixels() != NULL ){
             
             colorImg.setFromPixels(vidGrabber.getPixels(), capW, capH);
-            
+/*
             grayImage = colorImg;
             grayImage.contrastStretch();
             
             scaledInputImage.scaleIntoMe(grayImage);
-            
-            enlarged.scaleIntoMe(scaledInputImage, CV_INTER_AREA);
+*/
+//            enlarged.scaleIntoMe(scaledInputImage, CV_INTER_AREA);
+            enlarged.scaleIntoMe(colorImg, CV_INTER_AREA);
 
             
             Mat input = colorImg.getCvImage();
@@ -99,7 +102,7 @@ void ofApp::update(){
             
             cvtColor( input, hsv_input, CV_BGR2HSV );
             
-            int h_bins = 512;
+            int h_bins = 1024;
             int histSize[] = { h_bins};
             float h_ranges[] = { 0, 180 };
             
@@ -108,16 +111,21 @@ void ofApp::update(){
 
             MatND hist_input;
 
-            calcHist( &hsv_input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
+//            calcHist( &hsv_input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
+            calcHist( &input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
 
             normalize( hist_input, hist_input, 0, 1, NORM_MINMAX, -1, Mat() );
             
-            ofLog() << hist_input;
+            float* hist_array = (float*)hist_input.data;
+            
+            fft->setPolar(hist_array);
+            float* signal = fft->getSignal();
 
-            /*
-            fft->setSignal(input);
-            float* curFft = fft->getAmplitude();
-            */
+            soundMutex.lock();
+            outputSignal = signal;
+            soundMutex.unlock();
+
+//            ofLog() << signal;
             
         }
     }
@@ -143,8 +151,8 @@ void ofApp::audioOut(float * output, int bufferSize, int nChannels){
     if(bNoise == true){
         // ---------------------- noise --------------
         for(int i = 0; i < bufferSize; i++){
-            lAudio[i] = output[i * nChannels] = ofRandomf() * volume * leftScale;
-            rAudio[i] = output[i * nChannels + 1] = ofRandomf() * volume * rightScale;
+            lAudio[i] = output[i * nChannels] = outputSignal[i] * volume * leftScale;
+            rAudio[i] = output[i * nChannels + 1] = outputSignal[i] * volume * rightScale;
         }
     } else {
         phaseAdder = 0.95f * phaseAdder + 0.05f * phaseAdderTarget;
