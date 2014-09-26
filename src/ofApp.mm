@@ -47,6 +47,14 @@ void ofApp::setup(){
     rAudio = new float[initialBufferSize];
     outputSignal = new float[initialBufferSize];
     
+    sinTable = new float[sampleRate];
+    float step = TWO_PI / sampleRate;
+    for (int i=0; i<sampleRate; i++) {
+        sinTable[i] = sin(i * step);
+    }
+    
+    
+    
     memset(lAudio, 0, initialBufferSize * sizeof(float));
     memset(rAudio, 0, initialBufferSize * sizeof(float));
     memset(outputSignal, 0, initialBufferSize * sizeof(float));
@@ -66,7 +74,6 @@ void ofApp::setup(){
     ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
     ofSetFrameRate(24);
 
-//    fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING, OF_FFT_FFTW);
     fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING);
 }
 
@@ -102,7 +109,7 @@ void ofApp::update(){
             
             cvtColor( input, hsv_input, CV_BGR2HSV );
             
-            int h_bins = 1024;
+            int h_bins = 512;
             int histSize[] = { h_bins};
             float h_ranges[] = { 0, 180 };
             
@@ -174,7 +181,7 @@ void ofApp::draw(){
     ofDrawBitmapString(ofToString(ofGetFrameRate()), 20, 20);
     
     ofPushMatrix();
-    float scale = 768.0 / 40.0;
+
     //	ofScale(scale, scale, 1);
     
     // draw the incoming, the grayscale, the bg and the thresholded difference

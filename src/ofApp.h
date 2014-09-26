@@ -54,6 +54,7 @@ class ofApp : public ofxiOSApp {
     
     float * lAudio;
     float * rAudio;
+    float * sinTable;
     
     //------------------- for the simple sine wave synthesis
     float targetFrequency;
