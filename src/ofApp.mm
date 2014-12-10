@@ -47,14 +47,13 @@ void ofApp::setup(){
     rAudio = new float[initialBufferSize];
     outputSignal = new float[initialBufferSize];
     
+    // generate a 1hz sinus table
     sinTable = new float[sampleRate];
     float step = TWO_PI / sampleRate;
     for (int i=0; i<sampleRate; i++) {
         sinTable[i] = sin(i * step);
     }
-    
-    
-    
+
     memset(lAudio, 0, initialBufferSize * sizeof(float));
     memset(rAudio, 0, initialBufferSize * sizeof(float));
     memset(outputSignal, 0, initialBufferSize * sizeof(float));
@@ -85,45 +84,16 @@ void ofApp::update(){
     
     vidGrabber.update();
     bNewFrame = vidGrabber.isFrameNew();
-    
-    
-    
+
     if (bNewFrame){
         
         if( vidGrabber.getPixels() != NULL ){
             
             colorImg.setFromPixels(vidGrabber.getPixels(), capW, capH);
-/*
-            grayImage = colorImg;
-            grayImage.contrastStretch();
-            
-            scaledInputImage.scaleIntoMe(grayImage);
-*/
-//            enlarged.scaleIntoMe(scaledInputImage, CV_INTER_AREA);
             enlarged.scaleIntoMe(colorImg, CV_INTER_AREA);
 
             
-            Mat input = colorImg.getCvImage();
-            
-            Mat hsv_input;
-            
-            cvtColor( input, hsv_input, CV_BGR2HSV );
-            
-            int h_bins = 512;
-            int histSize[] = { h_bins};
-            float h_ranges[] = { 0, 180 };
-            
-            const float* ranges[] = { h_ranges };
-            int channels[] = { 0 };
-
-            MatND hist_input;
-
-//            calcHist( &hsv_input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
-            calcHist( &input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
-
-            normalize( hist_input, hist_input, 0, 1, NORM_MINMAX, -1, Mat() );
-            
-            float* hist_array = (float*)hist_input.data;
+            float* hist_array = calculateFrameHistogram(colorImg.getCvImage());
             
             fft->setPolar(hist_array);
             float* signal = fft->getSignal();
@@ -137,6 +107,31 @@ void ofApp::update(){
         }
     }
 }
+
+
+float *ofApp::calculateFrameHistogram(Mat input) {
+    
+    Mat hsv_input;
+    
+    cvtColor( input, hsv_input, CV_BGR2HSV );
+    
+    int h_bins = 512;
+    int histSize[] = { h_bins};
+    float h_ranges[] = { 0, 180 };
+    
+    const float* ranges[] = { h_ranges };
+    int channels[] = { 0 };
+    
+    MatND hist_input;
+    
+    //            calcHist( &hsv_input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
+    calcHist( &input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
+    
+    normalize( hist_input, hist_input, 0, 1, NORM_MINMAX, -1, Mat() );
+    
+    return (float*)hist_input.data;
+}
+
 
 //--------------------------------------------------------------
 void ofApp::audioOut(float * output, int bufferSize, int nChannels){
