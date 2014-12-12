@@ -46,12 +46,13 @@ void ofApp::setup(){
     lAudio = new float[initialBufferSize];
     rAudio = new float[initialBufferSize];
     outputSignal = new float[initialBufferSize];
+    histogramArray = new float[initialBufferSize];
     
-    // generate a 1hz sinus table
-    sinTable = new float[sampleRate];
-    float step = TWO_PI / sampleRate;
-    for (int i=0; i<sampleRate; i++) {
-        sinTable[i] = sin(i * step);
+    
+    oscillators = (Oscillator *)(operator new[]( initialBufferSize * sizeof( Oscillator ) ));
+    for (int i=0; i<initialBufferSize; i++) {
+        oscillators[i] = Oscillator();
+        oscillators[i].setFrequency(i*10);
     }
 
     memset(lAudio, 0, initialBufferSize * sizeof(float));
@@ -70,10 +71,8 @@ void ofApp::setup(){
     
     // ofxiOSSoundStream::setMixWithOtherApps(true);
     
-    ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
-    ofSetFrameRate(24);
+//    ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
 
-    fft = ofxFft::create(initialBufferSize, OF_FFT_WINDOW_HAMMING);
 }
 
 //--------------------------------------------------------------
@@ -92,31 +91,37 @@ void ofApp::update(){
             colorImg.setFromPixels(vidGrabber.getPixels(), capW, capH);
             enlarged.scaleIntoMe(colorImg, CV_INTER_AREA);
 
-            
-            float* hist_array = calculateFrameHistogram(colorImg.getCvImage());
-            
-            fft->setPolar(hist_array);
-            float* signal = fft->getSignal();
 
+            calculateFrameHistogram(colorImg.getCvImage(), histogramArray);
+/*
             soundMutex.lock();
-            outputSignal = signal;
+            generateSignal(histogramArray, outputSignal);
             soundMutex.unlock();
-
+*/
 //            ofLog() << signal;
             
         }
     }
 }
 
+void ofApp::generateSignal(float *histogram, float *buffer) {
+    
+    for (int i=0; i<initialBufferSize; i++) {
+        buffer[i] = 0;
+    }
 
-float *ofApp::calculateFrameHistogram(Mat input) {
+}
+
+
+
+void ofApp::calculateFrameHistogram(Mat input, float *histogram) {
     
     Mat hsv_input;
     
     cvtColor( input, hsv_input, CV_BGR2HSV );
     
     int h_bins = 512;
-    int histSize[] = { h_bins};
+    int histSize[] = { h_bins };
     float h_ranges[] = { 0, 180 };
     
     const float* ranges[] = { h_ranges };
@@ -129,7 +134,7 @@ float *ofApp::calculateFrameHistogram(Mat input) {
     
     normalize( hist_input, hist_input, 0, 1, NORM_MINMAX, -1, Mat() );
     
-    return (float*)hist_input.data;
+    memcpy(histogram, hist_input.data, h_bins * sizeof(float));
 }
 
 

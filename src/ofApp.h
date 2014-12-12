@@ -6,6 +6,8 @@
 #include "ofxOpenCv.h"
 #include "ofxFft.h"
 
+#include "oscillator.h"
+
 class ofApp : public ofxiOSApp {
 	
     public:
@@ -26,7 +28,8 @@ class ofApp : public ofxiOSApp {
         void deviceOrientationChanged(int newOrientation);
 
     private:
-    float *calculateFrameHistogram(cv::Mat input);
+    void calculateFrameHistogram(cv::Mat input, float *histogram);
+    void generateSignal(float *histogram, float *buffer);
     
     ofVideoGrabber vidGrabber;
     
@@ -56,8 +59,7 @@ class ofApp : public ofxiOSApp {
     
     float * lAudio;
     float * rAudio;
-    float * sinTable;
-    
+
     //------------------- for the simple sine wave synthesis
     float targetFrequency;
     float phase;
@@ -66,8 +68,11 @@ class ofApp : public ofxiOSApp {
     int initialBufferSize;
     
     
-    ofxFft *fft;
 	ofMutex soundMutex;
+    
+    float *histogramArray;
+
+    Oscillator *oscillators;
     
     float *outputSignal;
 };
