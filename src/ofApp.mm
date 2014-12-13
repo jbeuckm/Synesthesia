@@ -54,6 +54,9 @@ void ofApp::setup(){
         oscillators[i] = Oscillator();
         oscillators[i].setFrequency(i*10);
     }
+    ofLog() << Oscillator::sinTable[0];
+    ofLog() << Oscillator::sinTable[1];
+    ofLog() << Oscillator::sinTable[2];
 
     memset(lAudio, 0, initialBufferSize * sizeof(float));
     memset(rAudio, 0, initialBufferSize * sizeof(float));
