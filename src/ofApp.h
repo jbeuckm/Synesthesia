@@ -54,17 +54,11 @@ class ofApp : public ofxiOSApp {
     void audioOut(float * output, int bufferSize, int nChannels);
     float pan;
     int sampleRate;
-    bool bNoise;
     float volume;
     
     float * lAudio;
     float * rAudio;
 
-    //------------------- for the simple sine wave synthesis
-    float targetFrequency;
-    float phase;
-    float phaseAdder;
-    float phaseAdderTarget;
     int initialBufferSize;
     
     int num_bins;
@@ -74,7 +68,8 @@ class ofApp : public ofxiOSApp {
     
     float *histogramArray;
 
-    Oscillator *oscillators;
+    vector<Oscillator *> oscillators;
+    float *sinTable;
     
     float *outputSignal;
 };

@@ -32,12 +32,8 @@ void ofApp::setup(){
     // 4 num buffers (latency)
     
     sampleRate = 44100;
-    phase = 0;
-    phaseAdder = 0.0f;
-    phaseAdderTarget = 0.0;
-    volume = 0.15f;
+    volume = 0.5f;
     pan = 0.5;
-    bNoise = true;
     
     //for some reason on the iphone simulator 256 doesn't work - it comes in as 512!
     //so we do 512 - otherwise we crash
@@ -50,22 +46,22 @@ void ofApp::setup(){
     
     num_bins = 512;
     
-    
-    oscillators = (Oscillator *)(operator new[]( initialBufferSize * sizeof( Oscillator ) ));
+    oscillators.reserve(initialBufferSize);
     for (int i=0; i<initialBufferSize; i++) {
-        oscillators[i] = Oscillator();
-        oscillators[i].initSinTable(sampleRate);
-        oscillators[i].setFrequency(i*10);
+        oscillators[i] = new Oscillator(sampleRate);
+        oscillators[i]->setFrequency(i*10);
+    }
+    
+    sinTable = (float *)malloc(sampleRate * sizeof(float));
+    float step = TWO_PI / sampleRate;
+    for (int i=0; i<sampleRate; i++) {
+        sinTable[i] = sin(step * i);
     }
 
     
     memset(lAudio, 0, initialBufferSize * sizeof(float));
     memset(rAudio, 0, initialBufferSize * sizeof(float));
     memset(outputSignal, 0, initialBufferSize * sizeof(float));
-    
-    //we do this because we don't have a mouse move function to work with:
-    targetFrequency = 444.0;
-    phaseAdderTarget = (targetFrequency / (float)sampleRate) * TWO_PI;
     
     // This call will allow your app's sound to mix with any others that are creating sound
     // in the background (e.g. the Music app). It should be done before the call to
@@ -155,8 +151,11 @@ void ofApp::audioOut(float * output, int bufferSize, int nChannels){
     
     // ---------------------- noise --------------
     for(int i = 0; i < bufferSize; i++){
-        lAudio[i] = output[i * nChannels] = outputSignal[i] * volume * leftScale;
-        rAudio[i] = output[i * nChannels + 1] = outputSignal[i] * volume * rightScale;
+        
+        float sample = oscillators[44]->getSample(sinTable);
+        
+        lAudio[i] = output[i * nChannels] = sample * volume * leftScale;
+        rAudio[i] = output[i * nChannels + 1] = sample * volume * rightScale;
     }
     
     

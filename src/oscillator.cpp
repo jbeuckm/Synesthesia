@@ -11,28 +11,21 @@
 #include "oscillator.h"
 #include <math.h>
 
-float Oscillator::two_pi = 2.0 * M_PI;
-
-void Oscillator::initSinTable(int sampleRate) {
-    
-    sinTable = (float *)malloc(sampleRate * sizeof(float));
-
-    float step = Oscillator::two_pi / (float)sampleRate;
-    
-    for (int i=0; i<sampleRate; i++) {
-        sinTable[i] = sin(i * step);
-    }
-    
+Oscillator::Oscillator(int _sampleRate) {
+    sampleRate = _sampleRate;
 }
 
 void Oscillator::setFrequency(float f) {
-    phaseStep = 2 * M_PI / f;
+    stepSize = f;
 }
 
-float Oscillator::getStep() {
-    currentPhase += phaseStep;
-    if (currentPhase > two_pi) {
-        currentPhase -= two_pi;
+float Oscillator::getSample(float *waveTable) {
+
+    position += stepSize;
+    
+    if (position > sampleRate) {
+        position -= sampleRate;
     }
-    return Oscillator::sinTable[(int)currentPhase];
+    
+    return waveTable[(int)position];
 }

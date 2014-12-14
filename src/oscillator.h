@@ -12,17 +12,14 @@
 class Oscillator {
     
 public:
-    void initSinTable(int sampleRate);
+    Oscillator(int sampleRate);
 
-    static float two_pi;
-    float *sinTable;
-    
-    
-    float phaseStep;
-    float currentPhase;
+    float stepSize;
+    float position;
+    int sampleRate;
     
     void setFrequency(float f);
-    float getStep();
+    float getSample(float *waveTable);
 };
 
 #endif
