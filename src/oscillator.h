@@ -12,10 +12,10 @@
 class Oscillator {
     
 public:
-    Oscillator(int sampleRate = 44100);
+    void initSinTable(int sampleRate);
 
     static float two_pi;
-    static float *sinTable;
+    float *sinTable;
     
     
     float phaseStep;

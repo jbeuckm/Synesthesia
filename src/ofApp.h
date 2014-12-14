@@ -28,7 +28,7 @@ class ofApp : public ofxiOSApp {
         void deviceOrientationChanged(int newOrientation);
 
     private:
-    void calculateFrameHistogram(cv::Mat input, float *histogram);
+    void calculateFrameHistogram(cv::Mat input, int h_bins, float *histogram);
     void generateSignal(float *histogram, float *buffer);
     
     ofVideoGrabber vidGrabber;
@@ -66,6 +66,8 @@ class ofApp : public ofxiOSApp {
     float phaseAdder;
     float phaseAdderTarget;
     int initialBufferSize;
+    
+    int num_bins;
     
     
 	ofMutex soundMutex;

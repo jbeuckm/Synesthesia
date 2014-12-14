@@ -13,15 +13,14 @@
 
 float Oscillator::two_pi = 2.0 * M_PI;
 
-float *Oscillator::sinTable = (float *)malloc(41000 * sizeof(float));
-
-
-Oscillator::Oscillator(int sampleRate) {
+void Oscillator::initSinTable(int sampleRate) {
     
-    float step = Oscillator::two_pi / (float)sampleRate;
+    sinTable = (float *)malloc(sampleRate * sizeof(float));
 
+    float step = Oscillator::two_pi / (float)sampleRate;
+    
     for (int i=0; i<sampleRate; i++) {
-        Oscillator::sinTable[i] = sin(i * step);
+        sinTable[i] = sin(i * step);
     }
     
 }

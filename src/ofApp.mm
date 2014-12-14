@@ -48,16 +48,17 @@ void ofApp::setup(){
     outputSignal = new float[initialBufferSize];
     histogramArray = new float[initialBufferSize];
     
+    num_bins = 512;
+    
     
     oscillators = (Oscillator *)(operator new[]( initialBufferSize * sizeof( Oscillator ) ));
     for (int i=0; i<initialBufferSize; i++) {
         oscillators[i] = Oscillator();
+        oscillators[i].initSinTable(sampleRate);
         oscillators[i].setFrequency(i*10);
     }
-    ofLog() << Oscillator::sinTable[0];
-    ofLog() << Oscillator::sinTable[1];
-    ofLog() << Oscillator::sinTable[2];
 
+    
     memset(lAudio, 0, initialBufferSize * sizeof(float));
     memset(rAudio, 0, initialBufferSize * sizeof(float));
     memset(outputSignal, 0, initialBufferSize * sizeof(float));
@@ -74,7 +75,7 @@ void ofApp::setup(){
     
     // ofxiOSSoundStream::setMixWithOtherApps(true);
     
-//    ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
+    ofSoundStreamSetup(2, 0, this, sampleRate, initialBufferSize, 4);
 
 }
 
@@ -95,7 +96,7 @@ void ofApp::update(){
             enlarged.scaleIntoMe(colorImg, CV_INTER_AREA);
 
 
-            calculateFrameHistogram(colorImg.getCvImage(), histogramArray);
+            calculateFrameHistogram(colorImg.getCvImage(), num_bins, histogramArray);
 /*
             soundMutex.lock();
             generateSignal(histogramArray, outputSignal);
@@ -117,13 +118,12 @@ void ofApp::generateSignal(float *histogram, float *buffer) {
 
 
 
-void ofApp::calculateFrameHistogram(Mat input, float *histogram) {
+void ofApp::calculateFrameHistogram(Mat input, int h_bins, float *histogram) {
     
     Mat hsv_input;
     
     cvtColor( input, hsv_input, CV_BGR2HSV );
     
-    int h_bins = 512;
     int histSize[] = { h_bins };
     float h_ranges[] = { 0, 180 };
     
@@ -151,27 +151,12 @@ void ofApp::audioOut(float * output, int bufferSize, int nChannels){
     
     float leftScale = 1 - pan;
     float rightScale = pan;
+
     
-    // sin (n) seems to have trouble when n is very large, so we
-    // keep phase in the range of 0-TWO_PI like this:
-    while(phase > TWO_PI){
-        phase -= TWO_PI;
-    }
-    
-    if(bNoise == true){
-        // ---------------------- noise --------------
-        for(int i = 0; i < bufferSize; i++){
-            lAudio[i] = output[i * nChannels] = outputSignal[i] * volume * leftScale;
-            rAudio[i] = output[i * nChannels + 1] = outputSignal[i] * volume * rightScale;
-        }
-    } else {
-        phaseAdder = 0.95f * phaseAdder + 0.05f * phaseAdderTarget;
-        for(int i = 0; i < bufferSize; i++){
-            phase += phaseAdder;
-            float sample = sin(phase);
-            lAudio[i] = output[i * nChannels] = sample * volume * leftScale;
-            rAudio[i] = output[i * nChannels + 1] = sample * volume * rightScale;
-        }
+    // ---------------------- noise --------------
+    for(int i = 0; i < bufferSize; i++){
+        lAudio[i] = output[i * nChannels] = outputSignal[i] * volume * leftScale;
+        rAudio[i] = output[i * nChannels + 1] = outputSignal[i] * volume * rightScale;
     }
     
     
