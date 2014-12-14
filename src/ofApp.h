@@ -28,8 +28,8 @@ class ofApp : public ofxiOSApp {
         void deviceOrientationChanged(int newOrientation);
 
     private:
-    void calculateFrameHistogram(cv::Mat input, int h_bins, float *histogram);
-    void generateSignal(float *histogram, float *buffer);
+    void calculateFrameHistogram(cv::Mat input, int h_bins);
+    void generateSignal(float *buffer);
     
     ofVideoGrabber vidGrabber;
     
@@ -48,8 +48,6 @@ class ofApp : public ofxiOSApp {
     
     float capW;
     float capH;
-
-
 
     void audioOut(float * output, int bufferSize, int nChannels);
     float pan;

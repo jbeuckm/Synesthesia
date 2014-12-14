@@ -32,7 +32,7 @@ void ofApp::setup(){
     // 4 num buffers (latency)
     
     sampleRate = 44100;
-    volume = 0.5f;
+    volume = 1.0f;
     pan = 0.5;
     
     //for some reason on the iphone simulator 256 doesn't work - it comes in as 512!
@@ -44,7 +44,7 @@ void ofApp::setup(){
     outputSignal = new float[initialBufferSize];
     histogramArray = new float[initialBufferSize];
     
-    num_bins = 512;
+    num_bins = 128;
     
     oscillators.reserve(initialBufferSize);
     for (int i=0; i<initialBufferSize; i++) {
@@ -57,6 +57,8 @@ void ofApp::setup(){
     for (int i=0; i<sampleRate; i++) {
         sinTable[i] = sin(step * i);
     }
+    
+    ofLog() << sinTable[0] << ", " << sinTable[10] << ", " << sinTable[100] << ", ";
 
     
     memset(lAudio, 0, initialBufferSize * sizeof(float));
@@ -92,7 +94,11 @@ void ofApp::update(){
             enlarged.scaleIntoMe(colorImg, CV_INTER_AREA);
 
 
-            calculateFrameHistogram(colorImg.getCvImage(), num_bins, histogramArray);
+            calculateFrameHistogram(colorImg.getCvImage(), num_bins);
+/*
+            ofLog() << histogramArray[10];
+            ofLog() << histogramArray[100];
+            ofLog() << histogramArray[200];
 /*
             soundMutex.lock();
             generateSignal(histogramArray, outputSignal);
@@ -104,7 +110,7 @@ void ofApp::update(){
     }
 }
 
-void ofApp::generateSignal(float *histogram, float *buffer) {
+void ofApp::generateSignal(float *buffer) {
     
     for (int i=0; i<initialBufferSize; i++) {
         buffer[i] = 0;
@@ -114,7 +120,7 @@ void ofApp::generateSignal(float *histogram, float *buffer) {
 
 
 
-void ofApp::calculateFrameHistogram(Mat input, int h_bins, float *histogram) {
+void ofApp::calculateFrameHistogram(Mat input, int h_bins) {
     
     Mat hsv_input;
     
@@ -128,12 +134,18 @@ void ofApp::calculateFrameHistogram(Mat input, int h_bins, float *histogram) {
     
     MatND hist_input;
     
-    //            calcHist( &hsv_input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
-    calcHist( &input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
+    calcHist( &hsv_input, 1, channels, Mat(),
+             hist_input, 1, histSize, ranges, true, false );
+//    calcHist( &input, 1, channels, Mat(), hist_input, 1, histSize, ranges, true, false );
     
     normalize( hist_input, hist_input, 0, 1, NORM_MINMAX, -1, Mat() );
     
-    memcpy(histogram, hist_input.data, h_bins * sizeof(float));
+    memcpy(histogramArray, hist_input.data, h_bins * sizeof(float));
+    return;
+    for (int i=0; i<h_bins; i++) {
+//        histogramArray[i] = hist_input.at<float>(i);
+        ofLog() << i << ": " << hist_input.at<float>(i) << " became " << histogramArray[i];
+    }
 }
 
 
@@ -148,16 +160,26 @@ void ofApp::audioOut(float * output, int bufferSize, int nChannels){
     float leftScale = 1 - pan;
     float rightScale = pan;
 
-    
+    float sample;
+
     // ---------------------- noise --------------
     for(int i = 0; i < bufferSize; i++){
         
-        float sample = oscillators[44]->getSample(sinTable);
+        sample = 0;
+        
+        for (int j=0; j<num_bins; j++) {
+            
+            float hist = histogramArray[j];
+            float level = oscillators[j]->getSample(sinTable);
+            
+            sample += hist * level;
+
+//            ofLog() << hist << " * " << level << " =.." << sample;
+        }
         
         lAudio[i] = output[i * nChannels] = sample * volume * leftScale;
         rAudio[i] = output[i * nChannels + 1] = sample * volume * rightScale;
     }
-    
     
 }
 

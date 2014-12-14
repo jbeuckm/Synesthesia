@@ -13,6 +13,8 @@
 
 Oscillator::Oscillator(int _sampleRate) {
     sampleRate = _sampleRate;
+    
+    position = 0;
 }
 
 void Oscillator::setFrequency(float f) {
@@ -23,9 +25,9 @@ float Oscillator::getSample(float *waveTable) {
 
     position += stepSize;
     
-    if (position > sampleRate) {
-        position -= sampleRate;
+    if (position >= (float)sampleRate) {
+        position -= (float)sampleRate;
     }
-    
+//    printf("%d,", (int)position);
     return waveTable[(int)position];
 }
