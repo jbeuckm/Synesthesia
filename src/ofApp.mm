@@ -49,7 +49,7 @@ void ofApp::setup(){
     oscillators.reserve(initialBufferSize);
     for (int i=0; i<initialBufferSize; i++) {
         oscillators[i] = new Oscillator(sampleRate);
-        oscillators[i]->setFrequency(i*10);
+        oscillators[i]->setFrequency(100 + i*15);
     }
     
     sinTable = (float *)malloc(sampleRate * sizeof(float));
